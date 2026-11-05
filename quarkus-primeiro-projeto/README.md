@@ -59,6 +59,8 @@ O perfil padrao usa H2 em arquivo (`./gestao-empresas`). O Hibernate cria o esqu
 
 ## Testes e empacotamento
 
+Os testes unitarios usam JUnit 5 e Mockito; os testes de API usam QuarkusTest e RestAssured. Execute a suite com:
+
 ```powershell
 .\mvnw.cmd test
 .\mvnw.cmd verify -DskipITs=false
