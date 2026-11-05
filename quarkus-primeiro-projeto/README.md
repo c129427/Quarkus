@@ -57,6 +57,10 @@ Erros de validacao e regras de data retornam `400 Bad Request`; consultas sem re
 
 O perfil padrao usa H2 em arquivo (`./gestao-empresas`). O Hibernate cria o esquema quando necessario e atualiza-o ao iniciar. No perfil de testes e usado H2 em memoria, recriado a cada inicializacao. Antes de producao, configure um banco persistente, migracoes e uma estrategia de esquema apropriada.
 
+## Logging
+
+A aplicacao usa o logger integrado ao Quarkus (`org.jboss.logging.Logger`), com nivel `INFO` para o package `com.giba`. Os servicos registram operacoes de cadastro, atualizacao e exclusao sem incluir CPF, nome ou valores de renda nos logs.
+
 ## Testes e empacotamento
 
 Os testes unitarios usam JUnit 5 e Mockito; os testes de API usam QuarkusTest e RestAssured. Execute a suite com:

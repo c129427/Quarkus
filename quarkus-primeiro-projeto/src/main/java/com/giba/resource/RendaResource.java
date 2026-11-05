@@ -39,15 +39,15 @@ public class RendaResource {
 
     @PUT
     @Path("/registro/{id}")
-    public RendaResponse atualizar(@PathParam("cpf") String cpf, @PathParam("id") Long id,
+    public RendaResponse atualizar(@PathParam("cpf") String cpf, @PathParam("id") String id,
                                    @Valid RendaRequest request) {
-        return RendaResponse.de(service.atualizar(cpf, id, request));
+        return RendaResponse.de(service.atualizar(cpf, IdPathParam.converter(id), request));
     }
 
     @DELETE
     @Path("/registro/{id}")
-    public Response excluir(@PathParam("cpf") String cpf, @PathParam("id") Long id) {
-        service.excluir(cpf, id);
+    public Response excluir(@PathParam("cpf") String cpf, @PathParam("id") String id) {
+        service.excluir(cpf, IdPathParam.converter(id));
         return Response.noContent().build();
     }
 }

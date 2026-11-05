@@ -1,5 +1,7 @@
 package com.giba.service;
 
+import com.giba.CodigoMensagem;
+import com.giba.Mensagens;
 import com.giba.dto.RendaRequest;
 import com.giba.exception.ConflitoException;
 import com.giba.exception.EntidadeNaoEncontradaException;
@@ -12,11 +14,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import org.jboss.logging.Logger;
 
 import java.util.List;
 
 @ApplicationScoped
 public class RendaService {
+
+    private static final Logger LOG = Logger.getLogger(RendaService.class);
 
     @Inject
     PessoaRepository pessoas;
@@ -32,6 +37,8 @@ public class RendaService {
         renda.pessoa = pessoa;
         copiarDados(request, renda);
         rendas.persist(renda);
+        LOG.infof("Renda cadastrada. id=%s pessoaId=%s periodo=%02d/%d",
+                renda.id, pessoa.id, renda.mes, renda.ano);
         return renda;
     }
 
@@ -45,9 +52,12 @@ public class RendaService {
     public Renda atualizar(String cpfInformado, Long rendaId, RendaRequest request) {
         Pessoa pessoa = buscarPessoa(cpfInformado);
         Renda renda = rendas.find("id = ?1 and pessoa.id = ?2", rendaId, pessoa.id).firstResultOptional()
-                .orElseThrow(() -> new EntidadeNaoEncontradaException("Renda nao encontrada"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        Mensagens.obter(CodigoMensagem.REGISTRO_NAO_ENCONTRADO)));
         verificarPeriodo(request, pessoa.id, rendaId);
         copiarDados(request, renda);
+        LOG.infof("Renda atualizada. id=%s pessoaId=%s periodo=%02d/%d",
+                renda.id, pessoa.id, renda.mes, renda.ano);
         return renda;
     }
 
@@ -55,8 +65,10 @@ public class RendaService {
     public void excluir(String cpfInformado, Long rendaId) {
         Pessoa pessoa = buscarPessoa(cpfInformado);
         Renda renda = rendas.find("id = ?1 and pessoa.id = ?2", rendaId, pessoa.id).firstResultOptional()
-                .orElseThrow(() -> new EntidadeNaoEncontradaException("Renda nao encontrada"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        Mensagens.obter(CodigoMensagem.REGISTRO_NAO_ENCONTRADO)));
         rendas.delete(renda);
+        LOG.infof("Renda excluida. id=%s pessoaId=%s", rendaId, pessoa.id);
     }
 
     private Pessoa buscarPessoa(String cpfInformado) {
@@ -64,18 +76,19 @@ public class RendaService {
         try {
             cpf = CpfValidator.normalizar(cpfInformado);
         } catch (IllegalArgumentException exception) {
-            throw new BadRequestException("CPF invalido");
+            throw new BadRequestException(Mensagens.obter(CodigoMensagem.VALOR_INVALIDO, "cpf"));
         }
         if (!CpfValidator.validar(cpf)) {
-            throw new BadRequestException("CPF invalido");
+            throw new BadRequestException(Mensagens.obter(CodigoMensagem.VALOR_INVALIDO, "cpf"));
         }
         return pessoas.buscarPorCpf(cpf)
-                .orElseThrow(() -> new EntidadeNaoEncontradaException("Pessoa nao encontrada"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        Mensagens.obter(CodigoMensagem.REGISTRO_NAO_ENCONTRADO)));
     }
 
     private void verificarPeriodo(RendaRequest request, Long pessoaId, Long ignorarId) {
         if (rendas.existeNoPeriodo(pessoaId, request.mes(), request.ano(), ignorarId)) {
-            throw new ConflitoException("Ja existe uma renda cadastrada para este mes e ano");
+            throw new ConflitoException(Mensagens.obter(CodigoMensagem.REGISTRO_JA_EXISTE));
         }
     }
 

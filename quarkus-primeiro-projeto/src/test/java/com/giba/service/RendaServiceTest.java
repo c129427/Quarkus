@@ -52,8 +52,9 @@ class RendaServiceTest {
 
     @Test
     void rejeitaCpfInvalidoEPeriodoDuplicado() {
-        assertThrows(BadRequestException.class,
+        BadRequestException erroCpf = assertThrows(BadRequestException.class,
                 () -> service.listar("nao-e-cpf"));
+        assertEquals("O campo cpf possui um valor inválido.", erroCpf.getMessage());
 
         Pessoa pessoa = new Pessoa();
         pessoa.id = 4L;
@@ -62,6 +63,8 @@ class RendaServiceTest {
         when(rendas.existeNoPeriodo(pessoa.id, 5, 2025, null)).thenReturn(true);
         RendaRequest request = new RendaRequest(5, 2025, new BigDecimal("12000.00"));
 
-        assertThrows(ConflitoException.class, () -> service.criar(pessoa.cpf, request));
+        ConflitoException erroDuplicado = assertThrows(
+                ConflitoException.class, () -> service.criar(pessoa.cpf, request));
+        assertEquals("O registro informado já existe.", erroDuplicado.getMessage());
     }
 }

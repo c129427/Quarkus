@@ -53,13 +53,20 @@ class PessoaServiceTest {
     void rejeitaCpfInvalidoEDuplicado() {
         PessoaRequest invalida = new PessoaRequest("11111111111", "Ana",
                 LocalDate.of(1990, 1, 2), SituacaoPessoa.ATIVA);
-        assertThrows(BadRequestException.class, () -> service.criar(invalida));
+        BadRequestException erroCpf = assertThrows(BadRequestException.class, () -> service.criar(invalida));
+        assertEquals("O campo cpf possui um valor inválido.", erroCpf.getMessage());
+        PessoaRequest cpfMalformado = new PessoaRequest("123", "Ana",
+                LocalDate.of(1990, 1, 2), SituacaoPessoa.ATIVA);
+        BadRequestException erroCpfMalformado = assertThrows(
+                BadRequestException.class, () -> service.criar(cpfMalformado));
+        assertEquals("O campo cpf possui um valor inválido.", erroCpfMalformado.getMessage());
         verify(pessoas, never()).buscarPorCpf(any());
 
         when(pessoas.buscarPorCpf("52998224725")).thenReturn(Optional.of(new Pessoa()));
         PessoaRequest duplicada = new PessoaRequest("52998224725", "Ana",
                 LocalDate.of(1990, 1, 2), SituacaoPessoa.ATIVA);
-        assertThrows(ConflitoException.class, () -> service.criar(duplicada));
+        ConflitoException erroDuplicado = assertThrows(ConflitoException.class, () -> service.criar(duplicada));
+        assertEquals("O registro informado já existe.", erroDuplicado.getMessage());
         verify(pessoas, never()).persist(any(Pessoa.class));
     }
 }

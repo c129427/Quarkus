@@ -1,5 +1,7 @@
 package com.giba.validation;
 
+import com.giba.CodigoMensagem;
+import com.giba.Mensagens;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -10,7 +12,14 @@ public class CpfValidator implements ConstraintValidator<CpfValido, CharSequence
         if (value == null) {
             return true;
         }
-        return validar(value.toString());
+        if (validar(value.toString())) {
+            return true;
+        }
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(
+                Mensagens.obter(CodigoMensagem.VALOR_INVALIDO, "cpf"))
+                .addConstraintViolation();
+        return false;
     }
 
     public static boolean validar(String value) {
